@@ -17,6 +17,32 @@
   --color-bone: #f5f2eb;
   --color-warm-gray: #6e675b;
   --color-line: #cfc8b9;
+
+  /* Template 2 — "Signal": bold, dark, minimal. Near-black ground, one
+     electric-lime signal color, no secondary hues. Editorial/tech mood. */
+  --font-display-2: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-sans-2: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --color-void: #0a0a0a;
+  --color-void-soft: #131313;
+  --color-void-line: #232323;
+  --color-cream: #f4f4ef;
+  --color-cream-dim: #a3a39c;
+  --color-signal: #d4ff3f;
+  --color-signal-deep: #a8cc22;
+
+  /* Template 3 — "Orbit": deep, atmospheric, dimensional. Indigo-navy ground,
+     electric-cyan signal, a live 3D particle field as the one bold moment. */
+  --font-display-3: "Sora", ui-sans-serif, system-ui, sans-serif;
+  --font-sans-3: "Manrope", ui-sans-serif, system-ui, sans-serif;
+
+  --color-abyss: #060810;
+  --color-abyss-soft: #0c1020;
+  --color-abyss-line: #1c2338;
+  --color-frost: #eef1fa;
+  --color-frost-dim: #8a93ad;
+  --color-pulse: #54e0ff;
+  --color-pulse-deep: #2bb8d8;
 }
 
 @layer base {
@@ -52,6 +78,48 @@
   :focus-visible {
     outline: 3px solid var(--color-coral);
     outline-offset: 2px;
+  }
+
+  /* Template 2 ("Signal") swaps the ground/ink/accent roles at the root so
+     every unstyled inch of the page (browser chrome behind content, etc.)
+     matches, then components use --color-void/cream/signal directly. */
+  html[data-theme="signal"] {
+    background-color: var(--color-void);
+  }
+
+  html[data-theme="signal"] body {
+    background-color: var(--color-void);
+    color: var(--color-cream);
+    font-family: var(--font-sans-2);
+  }
+
+  html[data-theme="signal"] ::selection {
+    background-color: var(--color-signal);
+    color: var(--color-void);
+  }
+
+  html[data-theme="signal"] :focus-visible {
+    outline-color: var(--color-signal);
+  }
+
+  /* Template 3 ("Orbit") root swap. */
+  html[data-theme="orbit"] {
+    background-color: var(--color-abyss);
+  }
+
+  html[data-theme="orbit"] body {
+    background-color: var(--color-abyss);
+    color: var(--color-frost);
+    font-family: var(--font-sans-3);
+  }
+
+  html[data-theme="orbit"] ::selection {
+    background-color: var(--color-pulse);
+    color: var(--color-abyss);
+  }
+
+  html[data-theme="orbit"] :focus-visible {
+    outline-color: var(--color-pulse);
   }
 }
 
@@ -115,6 +183,49 @@
   .link-wipe:hover::after {
     transform: scaleX(1);
     transform-origin: left;
+  }
+
+  /* Template 2 display type: bold grotesque, tighter and heavier than
+     template 1's .display so the two templates don't feel like reskins. */
+  .display-2 {
+    font-family: var(--font-display-2);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    line-height: 0.9;
+    text-wrap: balance;
+  }
+
+  .eyebrow-2 {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  /* Template 3 display type: geometric grotesque, a touch more open than
+     template 2 to sit calmly over the moving 3D field. */
+  .display-3 {
+    font-family: var(--font-display-3);
+    font-weight: 700;
+    letter-spacing: -0.035em;
+    line-height: 0.92;
+    text-wrap: balance;
+  }
+
+  .eyebrow-3 {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+
+  /* Frosted-glass surface for Orbit cards sitting over the particle field. */
+  .glass {
+    background-color: color-mix(in srgb, var(--color-abyss-soft) 72%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
 }
 

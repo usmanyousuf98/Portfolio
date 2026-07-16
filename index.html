@@ -8,11 +8,27 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <meta name="theme-color" content="#ECE7DD" />
     <title>Usman Yousuf — Full-Stack Software Engineer</title>
+    <script>
+      // Runs before paint so the site never flashes the wrong template on
+      // load or reload. Kept in sync with the values ThemeContext writes.
+      (function () {
+        try {
+          var theme = localStorage.getItem("portfolio-theme");
+          var meta = { signal: "#0A0A0A", orbit: "#060810" };
+          if (meta[theme]) {
+            document.documentElement.setAttribute("data-theme", theme);
+            document
+              .querySelector('meta[name="theme-color"]')
+              .setAttribute("content", meta[theme]);
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -69,7 +69,7 @@ export default function Hero() {
           </motion.div>
 
           {/* Statement + CTAs */}
-          <div className="order-1 flex flex-col justify-between gap-8 md:order-2 md:col-span-8">
+          <div className="order-1 flex flex-col justify-start gap-8 md:order-2 md:col-span-8">
             <motion.p
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
@@ -84,28 +84,21 @@ export default function Hero() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6, duration: 0.6 }}
-              className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between"
+              className="flex flex-wrap gap-3"
             >
-              <div className="flex flex-wrap gap-3">
-                <a
-                  href="#Contact"
-                  className="group relative overflow-hidden rounded-full bg-ink px-7 py-3.5 font-mono text-sm font-bold uppercase tracking-wider text-bone"
-                >
-                  <span className="relative z-10">Get in touch →</span>
-                  <span className="absolute inset-0 z-0 origin-left scale-x-0 bg-coral transition-transform duration-400 ease-[cubic-bezier(0.65,0,0.35,1)] group-hover:scale-x-100" />
-                </a>
-                <a
-                  href="#Works"
-                  className="rounded-full border-2 border-ink px-7 py-3.5 font-mono text-sm font-bold uppercase tracking-wider text-ink transition-colors hover:bg-ink hover:text-bone"
-                >
-                  See work
-                </a>
-              </div>
-
-              <div className="font-mono text-xs uppercase leading-relaxed tracking-wider text-warm-gray">
-                <div>{LOCATION} · Remote</div>
-                <div>3+ yrs · Full-Stack</div>
-              </div>
+              <a
+                href="#Contact"
+                className="group relative overflow-hidden rounded-full bg-ink px-7 py-3.5 font-mono text-sm font-bold uppercase tracking-wider text-bone"
+              >
+                <span className="relative z-10">Get in touch →</span>
+                <span className="absolute inset-0 z-0 origin-left scale-x-0 bg-coral transition-transform duration-400 ease-[cubic-bezier(0.65,0,0.35,1)] group-hover:scale-x-100" />
+              </a>
+              <a
+                href="#Works"
+                className="rounded-full border-2 border-ink px-7 py-3.5 font-mono text-sm font-bold uppercase tracking-wider text-ink transition-colors hover:bg-ink hover:text-bone"
+              >
+                See work
+              </a>
             </motion.div>
           </div>
         </div>

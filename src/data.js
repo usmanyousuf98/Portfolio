@@ -96,6 +96,13 @@ export const PROJECTS = [
   },
 ];
 
+export const METRICS = [
+  { value: "3+", label: "Years shipping production" },
+  { value: "20+", label: "Projects delivered" },
+  { value: "50%", label: "Faster mobile load times" },
+  { value: "20%", label: "Higher user adoption" },
+];
+
 export const SKILLS = [
   {
     title: "Frontend",
@@ -116,8 +123,8 @@ export const SKILLS = [
 ];
 
 export const ABOUT_PARAGRAPHS = [
-  "I'm a full-stack software engineer who builds production web and mobile applications end to end — from React and React Native interfaces down to Node.js and Express APIs. I care about the parts most people skip past: validation logic that catches errors before users do, storage that doesn't bloat, and screens that load fast on a bad connection.",
-  "Over the last three years I've shipped a live PDF editor, a Whisper-based transcription API, YOLO models for fire detection, and redesigned a client portal that moved user acceptance up 20%. I like taking a feature from a rough idea to something people actually rely on.",
+  "I'm a full-stack engineer who builds production web and mobile apps end to end — React and React Native on the surface, Node.js and Express underneath. I care about the parts most people skip past: validation that catches errors before users do, storage that doesn't bloat, and screens that stay fast on a bad connection.",
+  "I like owning a feature from a rough idea to something people rely on — writing it, shipping it, then going back to make it faster and cheaper to run. Whatever moves the number that matters, whether that's a cleaner interface up top or a native module underneath.",
 ];
 
 export const EDUCATION = {
@@ -134,9 +141,9 @@ export const EXPERIENCE = [
     location: "Karachi",
     dates: "Feb 2024 — Present",
     items: [
-      "Built a full-stack PDF customization tool — live text/color/layout editing, real-time rendering, layout persistence, one-click export — designed and shipped independently end to end.",
-      "Redesigned and rebuilt a client-facing portal on a modern stack, lifting user acceptance 20%.",
-      "Built React-based calculation and validation logic that eliminated user-side input errors.",
+      "Designed and shipped a full-stack PDF customization editor end to end, working solo across frontend and backend.",
+      "Rebuilt the client-facing portal on a modern stack — user acceptance up 20%.",
+      "Wrote React calculation and validation logic that eliminated user-side input errors.",
       "Cut mobile load time 50% and storage footprint 10% through pixel-perfect, responsive screens.",
       "Mentored incoming interns into productive contributors on the team.",
     ],
@@ -148,10 +155,10 @@ export const EXPERIENCE = [
     location: "Karachi",
     dates: "Jul 2023 — Feb 2024",
     items: [
-      "Built the backend API for OpenAI Whisper audio transcription for seamless end-user integration.",
+      "Built the backend API around OpenAI Whisper for audio transcription.",
       "Trained YOLO models (Python, OpenCV, PyTorch) for remote camera monitoring and fire detection.",
       "Built a native Android module in Java for React Native to optimize PDF text extraction.",
-      "Built a full-featured dashboard (React, Redux, TanStack Query) for a data-security platform.",
+      "Built the data-security platform's dashboard in React, Redux, and TanStack Query.",
     ],
   },
   {
