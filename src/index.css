@@ -227,6 +227,23 @@
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
   }
+
+  /* Infinite marquee: two identical tracks translate left by half the pair's
+     width for a seamless loop. Pauses on hover; the global reduced-motion
+     rule below freezes it. */
+  .marquee-track {
+    animation: marquee-x 32s linear infinite;
+  }
+
+  .marquee:hover .marquee-track {
+    animation-play-state: paused;
+  }
+
+  @keyframes marquee-x {
+    to {
+      transform: translateX(-50%);
+    }
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

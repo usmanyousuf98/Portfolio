@@ -17,6 +17,7 @@ import ScrollTop from "./components/ScrollTop";
 import NavV2 from "./components/NavV2";
 import HeroV2 from "./components/HeroV2";
 import MetricsV2 from "./components/MetricsV2";
+import MarqueeV2 from "./components/MarqueeV2";
 import ServicesV2 from "./components/ServicesV2";
 import ExperienceV2 from "./components/ExperienceV2";
 import WorksV2 from "./components/WorksV2";
@@ -62,11 +63,12 @@ function Site() {
         <NavV2 />
         <main>
           <HeroV2 />
+          <AboutV2 />
           <MetricsV2 />
           <ServicesV2 />
           <ExperienceV2 />
+          <MarqueeV2 />
           <WorksV2 />
-          <AboutV2 />
         </main>
         <FooterV2 />
         <ScrollTopV2 />

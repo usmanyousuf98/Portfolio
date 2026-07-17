@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { PROJECTS } from "../data";
+import SignalEyebrow from "./SignalEyebrow";
 
 export default function WorksV2() {
   return (
@@ -7,7 +8,7 @@ export default function WorksV2() {
       <div className="container-px">
         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <div>
-            <span className="eyebrow-2 text-signal">Selected work</span>
+            <SignalEyebrow num="04">Selected work</SignalEyebrow>
             <h2 className="display-2 mt-4 text-cream text-6xl md:text-8xl">Works</h2>
           </div>
           <p className="max-w-sm text-lg leading-snug text-cream-dim">
@@ -39,9 +40,16 @@ export default function WorksV2() {
                   <span className="font-mono text-4xl font-bold text-void-line transition-colors duration-300 group-hover:text-signal md:text-5xl">
                     {String(i + 1).padStart(2, "0")}
                   </span>
-                  <span className="rounded-full border border-void-line px-3 py-1 font-mono text-[10px] uppercase tracking-wider text-cream-dim transition-colors duration-300 group-hover:border-signal/50 group-hover:text-cream">
-                    {project.category}
-                  </span>
+                  <div className="flex flex-wrap items-center justify-end gap-2">
+                    {project.featured && (
+                      <span className="flex items-center gap-1.5 rounded-full bg-signal px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-void">
+                        <span className="text-xs leading-none">✦</span> Featured
+                      </span>
+                    )}
+                    <span className="rounded-full border border-void-line px-3 py-1 font-mono text-[10px] uppercase tracking-wider text-cream-dim transition-colors duration-300 group-hover:border-signal/50 group-hover:text-cream">
+                      {project.category}
+                    </span>
+                  </div>
                 </div>
 
                 <div>

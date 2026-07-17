@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { EMAIL, NAV_LINKS, PHONE, RESUME_URL, SOCIAL_LINKS } from "../data";
+import SignalEyebrow from "./SignalEyebrow";
 
 // Only render social links that actually point somewhere real.
 const liveSocials = SOCIAL_LINKS.filter((s) => s.href && s.href !== "#");
@@ -46,7 +47,7 @@ export default function FooterV2() {
         <div className="container-px grid grid-cols-1 gap-12 md:grid-cols-2 md:gap-16">
           <div className="flex flex-col justify-between gap-8">
             <div>
-              <span className="eyebrow-2 text-signal">Contact</span>
+              <SignalEyebrow num="05">Contact</SignalEyebrow>
               <h2 className="display-2 mt-4 text-cream text-6xl md:text-8xl">Let's talk.</h2>
               <p className="mt-6 max-w-md text-lg leading-snug text-cream-dim">
                 Have a role or project in mind? I reply within a day.

@@ -54,6 +54,7 @@ export const PROJECTS = [
     name: "Ain Finance",
     category: "Full-Stack",
     year: "2024",
+    featured: true,
     href: "#",
     description:
       "Live PDF editor for transaction documents — text, colors, and layout with real-time rendering, layout persistence, and one-click export. Built independently, frontend and backend.",
@@ -63,6 +64,7 @@ export const PROJECTS = [
     name: "Ain Finance",
     category: "Full-Stack",
     year: "2024",
+    featured: true,
     href: "#",
     description:
       "Complete redesign and rebuild of a client-facing portal on a modern stack, lifting user acceptance by 20%.",

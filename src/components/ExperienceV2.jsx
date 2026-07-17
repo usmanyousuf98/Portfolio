@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { EXPERIENCE } from "../data";
+import SignalEyebrow from "./SignalEyebrow";
 
 export default function ExperienceV2() {
   return (
@@ -7,7 +8,7 @@ export default function ExperienceV2() {
       <div className="container-px">
         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <div>
-            <span className="eyebrow-2 text-signal">Where I've worked</span>
+            <SignalEyebrow num="03">Where I've worked</SignalEyebrow>
             <h2 className="display-2 mt-4 text-cream text-6xl md:text-8xl">Experience</h2>
           </div>
           <p className="max-w-sm text-lg leading-snug text-cream-dim">
