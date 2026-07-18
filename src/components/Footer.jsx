@@ -4,17 +4,24 @@ import { EMAIL, NAV_LINKS, PHONE, RESUME_URL, SOCIAL_LINKS } from "../data";
 // Only render social links that actually point somewhere real.
 const liveSocials = SOCIAL_LINKS.filter((s) => s.href && s.href !== "#");
 
+// Live clock in Usman's timezone (Karachi) — ticks every second so it reads
+// as a real, running clock rather than a static timestamp.
 function useLocalTime() {
   const [time, setTime] = useState("—");
   useEffect(() => {
     const update = () =>
       setTime(
         new Date()
-          .toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
+          .toLocaleTimeString("en-US", {
+            timeZone: "Asia/Karachi",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          })
           .toUpperCase()
       );
     update();
-    const id = setInterval(update, 1000 * 30);
+    const id = setInterval(update, 1000);
     return () => clearInterval(id);
   }, []);
   return time;
@@ -124,7 +131,13 @@ export default function Footer() {
 
               <div className="flex flex-col gap-2.5">
                 <span className="eyebrow mb-1 text-bone/50">Local time</span>
-                <span className="font-mono text-bone/80">{time}</span>
+                <span className="flex items-center gap-2 font-mono text-bone/80">
+                  <span className="relative flex h-1.5 w-1.5" aria-hidden="true">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-coral opacity-75" />
+                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-coral" />
+                  </span>
+                  {time}
+                </span>
               </div>
             </div>
           </div>

@@ -125,8 +125,24 @@ export const SKILLS = [
 ];
 
 export const ABOUT_PARAGRAPHS = [
-  "I'm a full-stack engineer who builds production web and mobile apps end to end — React and React Native on the surface, Node.js and Express underneath. I care about the parts most people skip past: validation that catches errors before users do, storage that doesn't bloat, and screens that stay fast on a bad connection.",
-  "I like owning a feature from a rough idea to something people rely on — writing it, shipping it, then going back to make it faster and cheaper to run. Whatever moves the number that matters, whether that's a cleaner interface up top or a native module underneath.",
+  "I'm a full-stack engineer who builds production web and mobile apps end to end — React and React Native on the surface, Node.js and Express underneath. I like owning a feature from a rough idea to something people rely on: writing it, shipping it, then going back to make it faster and cheaper to run.",
+];
+
+// The parts most people skip past — the substance behind the statement above.
+// Rendered as an editorial list in the About section instead of prose columns.
+export const ABOUT_PRINCIPLES = [
+  {
+    title: "Validation before users hit it",
+    body: "Input logic that catches errors early — the calculation and validation layer I wrote at Ain Finance eliminated user-side input errors outright.",
+  },
+  {
+    title: "Speed on a bad connection",
+    body: "Pixel-perfect, responsive screens that stay fast where it counts — cutting mobile load time 50% and the storage footprint alongside it.",
+  },
+  {
+    title: "Down to the native layer",
+    body: "When the JS layer isn't enough I drop into a native Android module in Java — whatever moves the number that actually matters.",
+  },
 ];
 
 export const EDUCATION = {

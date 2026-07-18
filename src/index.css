@@ -239,9 +239,28 @@
     animation-play-state: paused;
   }
 
+  /* Reverse direction (right-moving) for alternating marquee rows. Starts
+     shifted so it doesn't snap on the first frame. */
+  .marquee-track-reverse {
+    animation: marquee-x-reverse 32s linear infinite;
+  }
+
+  .marquee:hover .marquee-track-reverse {
+    animation-play-state: paused;
+  }
+
   @keyframes marquee-x {
     to {
       transform: translateX(-50%);
+    }
+  }
+
+  @keyframes marquee-x-reverse {
+    from {
+      transform: translateX(-50%);
+    }
+    to {
+      transform: translateX(0);
     }
   }
 }
