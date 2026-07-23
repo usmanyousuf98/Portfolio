@@ -127,10 +127,11 @@ export default function OrbitCanvas() {
       ctx.beginPath();
       ctx.arc(padX + dotR, cy, dotR, 0, Math.PI * 2);
       ctx.fill();
-      // Label text (frost) with a soft glow for legibility over the field
+      // Label text (muted frost) with a soft glow for legibility. Kept dim so
+      // the stack reads as an atmospheric layer behind the crisp headline.
       ctx.shadowColor = "rgba(6,8,16,0.9)";
       ctx.shadowBlur = 6 * dpr;
-      ctx.fillStyle = "#eef1fa";
+      ctx.fillStyle = "#c2cade";
       ctx.fillText(text, padX + dotR * 2 + gap, cy + fontPx * 0.03);
 
       const texture = new THREE.CanvasTexture(cvs);
@@ -144,7 +145,7 @@ export default function OrbitCanvas() {
         depthWrite: false,
       });
       const sprite = new THREE.Sprite(material);
-      const H = 0.42;
+      const H = 0.34;
       sprite.scale.set(H * (cvs.width / cvs.height), H, 1);
       return { sprite, material, texture };
     };
@@ -195,13 +196,13 @@ export default function OrbitCanvas() {
       hoverAmt += ((hovered ? 1 : 0) - hoverAmt) * 0.09;
 
       if (!prefersReduced) {
-        const spin = 0.09 + hoverAmt * 0.11;
+        const spin = 0.09 + hoverAmt * 0.06;
         sphere.rotation.y += dt * spin;
         sphere.rotation.x += dt * 0.025;
         stars.rotation.y += dt * 0.012;
-        // Labels orbit a touch slower, the opposite lean adds depth.
-        labelGroup.rotation.y += dt * (0.05 + hoverAmt * 0.06);
-        labelGroup.rotation.x = Math.sin(clock.elapsedTime * 0.15) * 0.12;
+        // Labels orbit a touch slower — kept gentle so the stack stays legible.
+        labelGroup.rotation.y += dt * (0.04 + hoverAmt * 0.03);
+        labelGroup.rotation.x = Math.sin(clock.elapsedTime * 0.15) * 0.1;
       }
 
       // Globe reacts: expands + brightens as the field wakes.
@@ -210,13 +211,19 @@ export default function OrbitCanvas() {
       sphereMat.opacity = 0.92 + hoverAmt * 0.08;
       sphereMat.size = 0.032 + hoverAmt * 0.006;
 
-      // Labels emerge from the sphere and fade in; those in front read brighter.
+      // Labels emerge from the sphere and fade in. Two fades keep them from
+      // fighting the headline: front-facing labels read brighter (depth), and
+      // labels drifting toward the screen edges — where the name and CTAs live
+      // — fall away (radial), leaving a legible core around the globe.
       labelGroup.scale.setScalar(0.8 + hoverAmt * 0.2);
       for (let i = 0; i < sprites.length; i++) {
         const { sprite, material } = sprites[i];
         sprite.getWorldPosition(worldPos);
         const front = THREE.MathUtils.clamp((worldPos.z + labelR) / (labelR * 2), 0, 1);
-        material.opacity = hoverAmt * (0.2 + front * 0.9);
+        worldPos.project(camera);
+        const rad = Math.hypot(worldPos.x, worldPos.y);
+        const edge = 1 - THREE.MathUtils.smoothstep(rad, 0.32, 0.72);
+        material.opacity = hoverAmt * (0.1 + front * 0.5) * (0.3 + edge * 0.7);
       }
 
       curX += (targetX - curX) * 0.045;

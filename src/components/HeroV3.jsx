@@ -95,6 +95,17 @@ export default function HeroV3() {
                 See work
               </a>
             </div>
+
+            {/* Discoverability cue for the interactive globe */}
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.1, duration: 0.6 }}
+              className="hidden items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-frost-dim md:flex"
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-pulse" />
+              Hover the field to reveal my stack
+            </motion.p>
           </motion.div>
         </div>
       </div>
