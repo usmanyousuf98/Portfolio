@@ -146,19 +146,23 @@ export default function OrbitCanvas() {
       });
       const sprite = new THREE.Sprite(material);
       const H = 0.34;
-      sprite.scale.set(H * (cvs.width / cvs.height), H, 1);
-      return { sprite, material, texture };
+      const baseW = H * (cvs.width / cvs.height);
+      sprite.scale.set(baseW, H, 1);
+      return { sprite, material, texture, baseW, baseH: H };
     };
 
     const n = skillItems.length;
     skillItems.forEach((text, i) => {
-      const { sprite, material, texture } = makeLabel(text);
+      const built = makeLabel(text);
       const y = 1 - (i / (n - 1)) * 2;
       const r = Math.sqrt(Math.max(0, 1 - y * y));
       const theta = golden * i;
-      sprite.position.set(labelR * Math.cos(theta) * r, labelR * y, labelR * Math.sin(theta) * r);
-      labelGroup.add(sprite);
-      sprites.push({ sprite, material, texture });
+      built.sprite.position.set(labelR * Math.cos(theta) * r, labelR * y, labelR * Math.sin(theta) * r);
+      built.baseY = labelR * y;
+      built.phase = i * 1.7; // desync the bob
+      built.appearAt = (i / n) * 0.45; // staggered cascade threshold
+      labelGroup.add(built.sprite);
+      sprites.push(built);
     });
 
     // --- Interaction state ---
@@ -168,6 +172,11 @@ export default function OrbitCanvas() {
     let curY = 0;
     let hovered = false; // pointer inside the hero field
     let hoverAmt = 0; // eased 0 → 1
+    // Labels are a hover interaction, so only on pointer-precise, desktop-width
+    // viewports — on tablet/mobile they crop and overlap the headline, and
+    // touch has no hover. Below this the sphere still reacts to touch-drag.
+    const LABEL_MIN_W = 1024;
+    let labelsEnabled = window.innerWidth >= LABEL_MIN_W;
 
     const onMove = (e) => {
       targetX = e.clientX / window.innerWidth - 0.5;
@@ -193,7 +202,10 @@ export default function OrbitCanvas() {
       raf = requestAnimationFrame(render);
       const dt = Math.min(clock.getDelta(), 0.05);
 
-      hoverAmt += ((hovered ? 1 : 0) - hoverAmt) * 0.09;
+      // Snappier response so the field feels alive the instant you enter it.
+      const wake = labelsEnabled && hovered ? 1 : 0;
+      hoverAmt += (wake - hoverAmt) * 0.12;
+      const t = clock.elapsedTime;
 
       if (!prefersReduced) {
         const spin = 0.09 + hoverAmt * 0.06;
@@ -202,7 +214,7 @@ export default function OrbitCanvas() {
         stars.rotation.y += dt * 0.012;
         // Labels orbit a touch slower — kept gentle so the stack stays legible.
         labelGroup.rotation.y += dt * (0.04 + hoverAmt * 0.03);
-        labelGroup.rotation.x = Math.sin(clock.elapsedTime * 0.15) * 0.1;
+        labelGroup.rotation.x = Math.sin(t * 0.15) * 0.1;
       }
 
       // Globe reacts: expands + brightens as the field wakes.
@@ -211,19 +223,27 @@ export default function OrbitCanvas() {
       sphereMat.opacity = 0.92 + hoverAmt * 0.08;
       sphereMat.size = 0.032 + hoverAmt * 0.006;
 
-      // Labels emerge from the sphere and fade in. Two fades keep them from
-      // fighting the headline: front-facing labels read brighter (depth), and
-      // labels drifting toward the screen edges — where the name and CTAs live
-      // — fall away (radial), leaving a legible core around the globe.
+      // Labels emerge from the sphere and fade in. Multiple cues shape it:
+      // a staggered cascade (per-label threshold), a depth fade+scale pop so
+      // front labels read brighter and larger, a radial fade that drops labels
+      // drifting toward the name/CTAs, and a gentle bob for life.
       labelGroup.scale.setScalar(0.8 + hoverAmt * 0.2);
       for (let i = 0; i < sprites.length; i++) {
-        const { sprite, material } = sprites[i];
-        sprite.getWorldPosition(worldPos);
+        const sp = sprites[i];
+        // Cascade: each label's own ramp begins once hoverAmt passes its slot.
+        const cascade = THREE.MathUtils.clamp((hoverAmt - sp.appearAt) / 0.3, 0, 1);
+        if (!prefersReduced) {
+          sp.sprite.position.y = sp.baseY + Math.sin(t * 0.9 + sp.phase) * 0.035;
+        }
+        sp.sprite.getWorldPosition(worldPos);
         const front = THREE.MathUtils.clamp((worldPos.z + labelR) / (labelR * 2), 0, 1);
         worldPos.project(camera);
         const rad = Math.hypot(worldPos.x, worldPos.y);
         const edge = 1 - THREE.MathUtils.smoothstep(rad, 0.32, 0.72);
-        material.opacity = hoverAmt * (0.1 + front * 0.5) * (0.3 + edge * 0.7);
+        sp.material.opacity = cascade * (0.1 + front * 0.55) * (0.3 + edge * 0.7);
+        // Depth pop + a small settle-in scale from the cascade.
+        const pop = (0.9 + front * 0.22) * (0.9 + cascade * 0.1);
+        sp.sprite.scale.set(sp.baseW * pop, sp.baseH * pop, 1);
       }
 
       curX += (targetX - curX) * 0.045;
@@ -242,6 +262,7 @@ export default function OrbitCanvas() {
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
+      labelsEnabled = window.innerWidth >= LABEL_MIN_W;
     };
     const ro = new ResizeObserver(onResize);
     ro.observe(mount);

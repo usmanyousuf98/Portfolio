@@ -263,6 +263,40 @@
       transform: translateX(0);
     }
   }
+
+  /* Signal "equalizer" brand motif — lime bars bouncing on a staggered loop.
+     Base state is full height so the global reduced-motion freeze leaves them
+     upright rather than as short stubs. */
+  .signal-eq-bar {
+    transform-origin: bottom;
+    animation: signal-eq 900ms ease-in-out infinite;
+  }
+
+  @keyframes signal-eq {
+    0%,
+    100% {
+      transform: scaleY(1);
+    }
+    50% {
+      transform: scaleY(0.4);
+    }
+  }
+
+  /* Gloss sweep across the Signal primary CTA — a periodic highlight that
+     travels through the button's overflow-hidden clip. */
+  .signal-shine {
+    animation: signal-shine 3.6s ease-in-out infinite;
+  }
+
+  @keyframes signal-shine {
+    0% {
+      transform: translateX(-180%) skewX(-18deg);
+    }
+    55%,
+    100% {
+      transform: translateX(320%) skewX(-18deg);
+    }
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

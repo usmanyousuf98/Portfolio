@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { ROLE_TAG } from "../data";
 import SignalName from "./SignalName";
+import SignalBars from "./SignalBars";
 
 export default function HeroV2() {
   return (
@@ -28,6 +29,7 @@ export default function HeroV2() {
             <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-signal" />
           </span>
           <span className="eyebrow-2 text-cream-dim">Available for new roles — 2026</span>
+          <SignalBars className="ml-1 h-3.5" />
         </motion.div>
 
         {/* Name (interactive particle field) on the left, the pitch on the
@@ -61,7 +63,11 @@ export default function HeroV2() {
                 href="#Contact"
                 className="group relative overflow-hidden rounded-full bg-signal px-7 py-3.5 font-mono text-sm font-bold uppercase tracking-wider text-void transition-transform duration-200 hover:scale-[1.03] active:scale-[0.98]"
               >
-                Get in touch →
+                <span
+                  aria-hidden="true"
+                  className="signal-shine pointer-events-none absolute inset-y-0 left-0 w-1/4 bg-gradient-to-r from-transparent via-white/55 to-transparent"
+                />
+                <span className="relative">Get in touch →</span>
               </a>
               <a
                 href="#Works"

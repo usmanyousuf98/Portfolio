@@ -101,7 +101,7 @@ export default function HeroV3() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1.1, duration: 0.6 }}
-              className="hidden items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-frost-dim md:flex"
+              className="hidden items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-frost-dim lg:flex"
             >
               <span className="h-1.5 w-1.5 rounded-full bg-pulse" />
               Hover the field to reveal my stack
