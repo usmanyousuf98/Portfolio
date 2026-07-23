@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { SERVICES } from "../data";
 import SignalEyebrow from "./SignalEyebrow";
+import RevealHeading from "./RevealHeading";
 
 export default function ServicesV2() {
   return (
@@ -9,7 +10,9 @@ export default function ServicesV2() {
         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <div>
             <SignalEyebrow num="02">What I do</SignalEyebrow>
-            <h2 className="display-2 mt-4 text-cream text-6xl md:text-8xl">Services</h2>
+            <h2 className="display-2 mt-4 text-cream text-6xl md:text-8xl">
+              <RevealHeading>Services</RevealHeading>
+            </h2>
           </div>
           <p className="max-w-sm text-lg leading-snug text-cream-dim">
             I turn ideas into fast, reliable full-stack products — built to

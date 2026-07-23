@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { motion, useScroll, useSpring, useTransform } from "framer-motion";
 import { EXPERIENCE } from "../data";
+import RevealHeading from "./RevealHeading";
 
 // Pull a display year (and a "present" flag) out of a "Feb 2024 — Present" string.
 function parseSpan(dates) {
@@ -102,7 +103,9 @@ export default function ExperienceV3() {
         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <div>
             <span className="eyebrow-3 text-pulse">Where I've worked</span>
-            <h2 className="display-3 mt-4 text-frost text-6xl md:text-8xl">Experience</h2>
+            <h2 className="display-3 mt-4 text-frost text-6xl md:text-8xl">
+              <RevealHeading>Experience</RevealHeading>
+            </h2>
           </div>
           <p className="max-w-sm text-lg leading-snug text-frost-dim">
             Three years shipping features that move real numbers — load times,

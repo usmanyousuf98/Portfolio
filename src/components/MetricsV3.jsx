@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { METRICS } from "../data";
+import CountUpNumber from "./CountUpNumber";
 
 export default function MetricsV3() {
   return (
@@ -14,9 +15,10 @@ export default function MetricsV3() {
             transition={{ duration: 0.5, delay: i * 0.08 }}
             className="flex flex-col gap-1.5"
           >
-            <span className="font-display-3 text-5xl font-bold tracking-tight text-pulse tabular-nums md:text-6xl">
-              {m.value}
-            </span>
+            <CountUpNumber
+              value={m.value}
+              className="font-display-3 text-5xl font-bold tracking-tight text-pulse tabular-nums md:text-6xl"
+            />
             <span className="font-mono text-[11px] uppercase leading-snug tracking-wider text-frost-dim">
               {m.label}
             </span>

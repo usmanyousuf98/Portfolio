@@ -1,10 +1,13 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
+import { SKILLS } from "../data";
 
-// Interactive particle constellation for the Orbit hero: a rotating
-// point-cloud sphere wrapped in a sparse starfield, with gentle mouse
-// parallax. Purely decorative and sits behind the DOM content — if WebGL
-// is unavailable the hero still reads fine on the CSS glow alone.
+// Interactive particle constellation for the Orbit hero: a rotating point-cloud
+// sphere wrapped in a sparse starfield, with gentle mouse parallax. Hovering
+// the field "wakes" the globe — it expands, spins up and brightens, and the
+// real tech stack emerges as labels orbiting the sphere (pulled from SKILLS).
+// Purely decorative and sits behind the DOM content — if WebGL is unavailable
+// the hero still reads fine on the CSS glow alone.
 export default function OrbitCanvas() {
   const mountRef = useRef(null);
 
@@ -24,6 +27,7 @@ export default function OrbitCanvas() {
     }
 
     const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
     const sizeOf = () => ({
       w: mount.clientWidth || window.innerWidth,
@@ -31,7 +35,7 @@ export default function OrbitCanvas() {
     });
 
     let { w, h } = sizeOf();
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setPixelRatio(dpr);
     renderer.setSize(w, h);
     renderer.domElement.style.width = "100%";
     renderer.domElement.style.height = "100%";
@@ -90,27 +94,131 @@ export default function OrbitCanvas() {
     const stars = new THREE.Points(starGeo, starMat);
     scene.add(stars);
 
-    // --- Mouse parallax (eased toward target) ---
+    // --- Skill labels orbiting the sphere (hidden until hover) ---
+    // Each SKILLS item becomes a text sprite placed on an outer Fibonacci
+    // shell. A cyan tick precedes the label so the stack reads at a glance.
+    const labelGroup = new THREE.Group();
+    scene.add(labelGroup);
+
+    const skillItems = SKILLS.flatMap((g) => g.items);
+    const labelR = 3.5;
+    const sprites = [];
+
+    const makeLabel = (text) => {
+      const cvs = document.createElement("canvas");
+      const ctx = cvs.getContext("2d");
+      const fontPx = 34 * dpr;
+      const font = `700 ${fontPx}px "JetBrains Mono", ui-monospace, monospace`;
+      ctx.font = font;
+      const dotR = fontPx * 0.16;
+      const gap = fontPx * 0.4;
+      const padX = fontPx * 0.3;
+      const padY = fontPx * 0.5;
+      const textW = ctx.measureText(text).width;
+      cvs.width = Math.ceil(padX * 2 + dotR * 2 + gap + textW);
+      cvs.height = Math.ceil(fontPx + padY * 2);
+
+      // Re-set after resize clears the context.
+      ctx.font = font;
+      ctx.textBaseline = "middle";
+      const cy = cvs.height / 2;
+      // Cyan tick
+      ctx.fillStyle = "#54e0ff";
+      ctx.beginPath();
+      ctx.arc(padX + dotR, cy, dotR, 0, Math.PI * 2);
+      ctx.fill();
+      // Label text (frost) with a soft glow for legibility over the field
+      ctx.shadowColor = "rgba(6,8,16,0.9)";
+      ctx.shadowBlur = 6 * dpr;
+      ctx.fillStyle = "#eef1fa";
+      ctx.fillText(text, padX + dotR * 2 + gap, cy + fontPx * 0.03);
+
+      const texture = new THREE.CanvasTexture(cvs);
+      texture.minFilter = THREE.LinearFilter;
+      texture.anisotropy = renderer.capabilities.getMaxAnisotropy?.() || 1;
+      const material = new THREE.SpriteMaterial({
+        map: texture,
+        transparent: true,
+        opacity: 0,
+        depthTest: false,
+        depthWrite: false,
+      });
+      const sprite = new THREE.Sprite(material);
+      const H = 0.42;
+      sprite.scale.set(H * (cvs.width / cvs.height), H, 1);
+      return { sprite, material, texture };
+    };
+
+    const n = skillItems.length;
+    skillItems.forEach((text, i) => {
+      const { sprite, material, texture } = makeLabel(text);
+      const y = 1 - (i / (n - 1)) * 2;
+      const r = Math.sqrt(Math.max(0, 1 - y * y));
+      const theta = golden * i;
+      sprite.position.set(labelR * Math.cos(theta) * r, labelR * y, labelR * Math.sin(theta) * r);
+      labelGroup.add(sprite);
+      sprites.push({ sprite, material, texture });
+    });
+
+    // --- Interaction state ---
     let targetX = 0;
     let targetY = 0;
     let curX = 0;
     let curY = 0;
+    let hovered = false; // pointer inside the hero field
+    let hoverAmt = 0; // eased 0 → 1
+
     const onMove = (e) => {
       targetX = e.clientX / window.innerWidth - 0.5;
       targetY = e.clientY / window.innerHeight - 0.5;
+      const rect = mount.getBoundingClientRect();
+      hovered =
+        e.clientX >= rect.left &&
+        e.clientX <= rect.right &&
+        e.clientY >= rect.top &&
+        e.clientY <= rect.bottom;
+    };
+    const onLeaveWin = () => {
+      hovered = false;
     };
     window.addEventListener("pointermove", onMove, { passive: true });
+    window.addEventListener("blur", onLeaveWin);
+    document.addEventListener("pointerleave", onLeaveWin);
 
+    const worldPos = new THREE.Vector3();
     const clock = new THREE.Clock();
     let raf = 0;
     const render = () => {
       raf = requestAnimationFrame(render);
       const dt = Math.min(clock.getDelta(), 0.05);
+
+      hoverAmt += ((hovered ? 1 : 0) - hoverAmt) * 0.09;
+
       if (!prefersReduced) {
-        sphere.rotation.y += dt * 0.09;
+        const spin = 0.09 + hoverAmt * 0.11;
+        sphere.rotation.y += dt * spin;
         sphere.rotation.x += dt * 0.025;
         stars.rotation.y += dt * 0.012;
+        // Labels orbit a touch slower, the opposite lean adds depth.
+        labelGroup.rotation.y += dt * (0.05 + hoverAmt * 0.06);
+        labelGroup.rotation.x = Math.sin(clock.elapsedTime * 0.15) * 0.12;
       }
+
+      // Globe reacts: expands + brightens as the field wakes.
+      const s = 1 + hoverAmt * 0.07;
+      sphere.scale.setScalar(s);
+      sphereMat.opacity = 0.92 + hoverAmt * 0.08;
+      sphereMat.size = 0.032 + hoverAmt * 0.006;
+
+      // Labels emerge from the sphere and fade in; those in front read brighter.
+      labelGroup.scale.setScalar(0.8 + hoverAmt * 0.2);
+      for (let i = 0; i < sprites.length; i++) {
+        const { sprite, material } = sprites[i];
+        sprite.getWorldPosition(worldPos);
+        const front = THREE.MathUtils.clamp((worldPos.z + labelR) / (labelR * 2), 0, 1);
+        material.opacity = hoverAmt * (0.2 + front * 0.9);
+      }
+
       curX += (targetX - curX) * 0.045;
       curY += (targetY - curY) * 0.045;
       camera.position.x = curX * 1.3;
@@ -135,10 +243,16 @@ export default function OrbitCanvas() {
       cancelAnimationFrame(raf);
       ro.disconnect();
       window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("blur", onLeaveWin);
+      document.removeEventListener("pointerleave", onLeaveWin);
       sphereGeo.dispose();
       sphereMat.dispose();
       starGeo.dispose();
       starMat.dispose();
+      sprites.forEach(({ material, texture }) => {
+        material.dispose();
+        texture.dispose();
+      });
       renderer.dispose();
       if (renderer.domElement.parentNode === mount) {
         mount.removeChild(renderer.domElement);

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { PROJECTS } from "../data";
 import SignalEyebrow from "./SignalEyebrow";
+import RevealHeading from "./RevealHeading";
 
 // Deterministic per-title seed → a tiny PRNG, so each project's generative
 // glyph is unique but stable across renders/reloads (never random noise).
@@ -262,7 +263,9 @@ export default function WorksV2() {
         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <div>
             <SignalEyebrow num="04">Selected work</SignalEyebrow>
-            <h2 className="display-2 mt-4 text-cream text-6xl md:text-8xl">Works</h2>
+            <h2 className="display-2 mt-4 text-cream text-6xl md:text-8xl">
+              <RevealHeading>Works</RevealHeading>
+            </h2>
           </div>
           <div className="flex max-w-sm flex-col gap-3">
             <p className="text-lg leading-snug text-cream-dim">

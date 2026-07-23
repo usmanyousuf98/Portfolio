@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { PROJECTS } from "../data";
+import RevealHeading from "./RevealHeading";
 
 // Deterministic per-title seed → a tiny PRNG, so each project's generative
 // glyph is unique but stable across renders/reloads (never random noise).
@@ -260,7 +261,9 @@ export default function WorksV3() {
         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <div>
             <span className="eyebrow-3 text-pulse">Selected work</span>
-            <h2 className="display-3 mt-4 text-frost text-6xl md:text-8xl">Works</h2>
+            <h2 className="display-3 mt-4 text-frost text-6xl md:text-8xl">
+              <RevealHeading>Works</RevealHeading>
+            </h2>
           </div>
           <div className="flex max-w-sm flex-col gap-3">
             <p className="text-lg leading-snug text-frost-dim">
