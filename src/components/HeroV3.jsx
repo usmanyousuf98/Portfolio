@@ -103,8 +103,8 @@ export default function HeroV3() {
               transition={{ delay: 1.1, duration: 0.6 }}
               className="hidden items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-frost-dim lg:flex"
             >
-              <span className="h-1.5 w-1.5 rounded-full bg-pulse" />
-              Hover the field to reveal my stack
+              <span className="h-1.5 w-1.5 rounded-full bg-pulse shadow-[0_0_8px_1px_rgba(84,224,255,0.8)]" />
+              Hover the glowing nodes to explore my stack
             </motion.p>
           </motion.div>
         </div>

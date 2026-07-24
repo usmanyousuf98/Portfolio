@@ -3,11 +3,11 @@ import * as THREE from "three";
 import { SKILLS } from "../data";
 
 // Interactive particle constellation for the Orbit hero: a rotating point-cloud
-// sphere wrapped in a sparse starfield, with gentle mouse parallax. Hovering
-// the field "wakes" the globe — it expands, spins up and brightens, and the
-// real tech stack emerges as labels orbiting the sphere (pulled from SKILLS).
-// Purely decorative and sits behind the DOM content — if WebGL is unavailable
-// the hero still reads fine on the CSS glow alone.
+// sphere wrapped in a sparse starfield, with gentle mouse parallax. A ring of
+// brighter "skill nodes" sits on the globe — hovering one lights it up and
+// floats a tooltip naming that part of the stack (raycast-picked, one dot →
+// one skill). Purely decorative; if WebGL is unavailable the hero still reads
+// on the CSS glow alone.
 export default function OrbitCanvas() {
   const mountRef = useRef(null);
 
@@ -46,6 +46,10 @@ export default function OrbitCanvas() {
     const camera = new THREE.PerspectiveCamera(58, w / h, 0.1, 100);
     camera.position.z = 6.4;
 
+    // Everything that spins together (cloud + skill nodes) lives in one group.
+    const globe = new THREE.Group();
+    scene.add(globe);
+
     // --- Sphere point cloud (Fibonacci distribution = even coverage) ---
     const SPHERE_COUNT = 1700;
     const radius = 2.7;
@@ -66,12 +70,12 @@ export default function OrbitCanvas() {
       size: 0.032,
       sizeAttenuation: true,
       transparent: true,
-      opacity: 0.92,
+      opacity: 0.9,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     });
     const sphere = new THREE.Points(sphereGeo, sphereMat);
-    scene.add(sphere);
+    globe.add(sphere);
 
     // --- Sparse background starfield for depth ---
     const STAR_COUNT = 520;
@@ -94,157 +98,169 @@ export default function OrbitCanvas() {
     const stars = new THREE.Points(starGeo, starMat);
     scene.add(stars);
 
-    // --- Skill labels orbiting the sphere (hidden until hover) ---
-    // Each SKILLS item becomes a text sprite placed on an outer Fibonacci
-    // shell. A cyan tick precedes the label so the stack reads at a glance.
-    const labelGroup = new THREE.Group();
-    scene.add(labelGroup);
-
-    const skillItems = SKILLS.flatMap((g) => g.items);
-    const labelR = 3.5;
-    const sprites = [];
-
-    const makeLabel = (text) => {
-      const cvs = document.createElement("canvas");
-      const ctx = cvs.getContext("2d");
-      const fontPx = 34 * dpr;
-      const font = `700 ${fontPx}px "JetBrains Mono", ui-monospace, monospace`;
-      ctx.font = font;
-      const dotR = fontPx * 0.16;
-      const gap = fontPx * 0.4;
-      const padX = fontPx * 0.3;
-      const padY = fontPx * 0.5;
-      const textW = ctx.measureText(text).width;
-      cvs.width = Math.ceil(padX * 2 + dotR * 2 + gap + textW);
-      cvs.height = Math.ceil(fontPx + padY * 2);
-
-      // Re-set after resize clears the context.
-      ctx.font = font;
-      ctx.textBaseline = "middle";
-      const cy = cvs.height / 2;
-      // Cyan tick
-      ctx.fillStyle = "#54e0ff";
-      ctx.beginPath();
-      ctx.arc(padX + dotR, cy, dotR, 0, Math.PI * 2);
-      ctx.fill();
-      // Label text (muted frost) with a soft glow for legibility. Kept dim so
-      // the stack reads as an atmospheric layer behind the crisp headline.
-      ctx.shadowColor = "rgba(6,8,16,0.9)";
-      ctx.shadowBlur = 6 * dpr;
-      ctx.fillStyle = "#c2cade";
-      ctx.fillText(text, padX + dotR * 2 + gap, cy + fontPx * 0.03);
-
-      const texture = new THREE.CanvasTexture(cvs);
-      texture.minFilter = THREE.LinearFilter;
-      texture.anisotropy = renderer.capabilities.getMaxAnisotropy?.() || 1;
-      const material = new THREE.SpriteMaterial({
-        map: texture,
-        transparent: true,
-        opacity: 0,
-        depthTest: false,
-        depthWrite: false,
-      });
-      const sprite = new THREE.Sprite(material);
-      const H = 0.34;
-      const baseW = H * (cvs.width / cvs.height);
-      sprite.scale.set(baseW, H, 1);
-      return { sprite, material, texture, baseW, baseH: H };
+    // --- Skill nodes: brighter dots on the globe, one per SKILLS item ---
+    // A soft radial glow texture gives each a small bright core with a halo, so
+    // the sprite quad can be generous (easy to hover) while the dot looks small.
+    const makeGlow = () => {
+      const size = 64;
+      const c = document.createElement("canvas");
+      c.width = c.height = size;
+      const g = c.getContext("2d");
+      const grd = g.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+      grd.addColorStop(0, "rgba(255,255,255,1)");
+      grd.addColorStop(0.18, "rgba(190,242,255,0.95)");
+      grd.addColorStop(0.45, "rgba(84,224,255,0.35)");
+      grd.addColorStop(1, "rgba(84,224,255,0)");
+      g.fillStyle = grd;
+      g.fillRect(0, 0, size, size);
+      const t = new THREE.CanvasTexture(c);
+      t.needsUpdate = true;
+      return t;
     };
+    const glowTex = makeGlow();
 
-    const n = skillItems.length;
-    skillItems.forEach((text, i) => {
-      const built = makeLabel(text);
-      const y = 1 - (i / (n - 1)) * 2;
+    const skills = SKILLS.flatMap((g) => g.items);
+    const nodeR = 2.74;
+    const BASE_SCALE = 0.36;
+    const nodes = [];
+    const pickTargets = [];
+    skills.forEach((name, i) => {
+      const y = 1 - (i / (skills.length - 1)) * 2;
       const r = Math.sqrt(Math.max(0, 1 - y * y));
       const theta = golden * i;
-      built.sprite.position.set(labelR * Math.cos(theta) * r, labelR * y, labelR * Math.sin(theta) * r);
-      built.baseY = labelR * y;
-      built.phase = i * 1.7; // desync the bob
-      built.appearAt = (i / n) * 0.45; // staggered cascade threshold
-      labelGroup.add(built.sprite);
-      sprites.push(built);
+      const mat = new THREE.SpriteMaterial({
+        map: glowTex,
+        transparent: true,
+        opacity: 0.85,
+        depthWrite: false,
+        depthTest: false,
+        blending: THREE.AdditiveBlending,
+      });
+      const sprite = new THREE.Sprite(mat);
+      sprite.position.set(nodeR * Math.cos(theta) * r, nodeR * y, nodeR * Math.sin(theta) * r);
+      sprite.scale.set(BASE_SCALE, BASE_SCALE, 1);
+      sprite.userData.index = i;
+      globe.add(sprite);
+      nodes.push({ sprite, mat, phase: i * 1.3, hover: 0 });
+      pickTargets.push(sprite);
     });
+
+    // --- Tooltip: a DOM pill anchored above the hovered node. Lives above the
+    // hero content (mount's parent) so the headline never covers it. ---
+    const parent = mount.parentElement || mount;
+    const tip = document.createElement("div");
+    tip.setAttribute("aria-hidden", "true");
+    tip.style.cssText = [
+      "position:absolute",
+      "left:0",
+      "top:0",
+      "z-index:30",
+      "pointer-events:none",
+      "padding:6px 12px",
+      "border-radius:9999px",
+      'font:600 12px/1 "JetBrains Mono", ui-monospace, monospace',
+      "letter-spacing:0.14em",
+      "text-transform:uppercase",
+      "color:#eef1fa",
+      "background:rgba(12,16,32,0.85)",
+      "border:1px solid rgba(84,224,255,0.5)",
+      "box-shadow:0 0 22px -6px rgba(84,224,255,0.6)",
+      "-webkit-backdrop-filter:blur(6px)",
+      "backdrop-filter:blur(6px)",
+      "white-space:nowrap",
+      "opacity:0",
+      "transform:translate(-50%,-150%) scale(0.9)",
+      "transition:opacity .16s ease, transform .16s ease",
+    ].join(";");
+    parent.appendChild(tip);
 
     // --- Interaction state ---
     let targetX = 0;
     let targetY = 0;
     let curX = 0;
     let curY = 0;
-    let hovered = false; // pointer inside the hero field
-    let hoverAmt = 0; // eased 0 → 1
-    // Labels are a hover interaction, so only on pointer-precise, desktop-width
-    // viewports — on tablet/mobile they crop and overlap the headline, and
-    // touch has no hover. Below this the sphere still reacts to touch-drag.
-    const LABEL_MIN_W = 1024;
-    let labelsEnabled = window.innerWidth >= LABEL_MIN_W;
+    let pointerInside = false;
+    const ndc = new THREE.Vector2(-2, -2);
+    let hoveredIndex = -1;
+    let tipIndex = -1;
+    let spinCur = 0.09;
 
     const onMove = (e) => {
       targetX = e.clientX / window.innerWidth - 0.5;
       targetY = e.clientY / window.innerHeight - 0.5;
       const rect = mount.getBoundingClientRect();
-      hovered =
+      pointerInside =
         e.clientX >= rect.left &&
         e.clientX <= rect.right &&
         e.clientY >= rect.top &&
         e.clientY <= rect.bottom;
+      ndc.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      ndc.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
     };
     const onLeaveWin = () => {
-      hovered = false;
+      pointerInside = false;
     };
     window.addEventListener("pointermove", onMove, { passive: true });
     window.addEventListener("blur", onLeaveWin);
     document.addEventListener("pointerleave", onLeaveWin);
 
+    const raycaster = new THREE.Raycaster();
     const worldPos = new THREE.Vector3();
     const clock = new THREE.Clock();
     let raf = 0;
     const render = () => {
       raf = requestAnimationFrame(render);
       const dt = Math.min(clock.getDelta(), 0.05);
-
-      // Snappier response so the field feels alive the instant you enter it.
-      const wake = labelsEnabled && hovered ? 1 : 0;
-      hoverAmt += (wake - hoverAmt) * 0.12;
       const t = clock.elapsedTime;
 
+      // Pick the front-most node under the cursor.
+      if (pointerInside) {
+        raycaster.setFromCamera(ndc, camera);
+        const hits = raycaster.intersectObjects(pickTargets, false);
+        hoveredIndex = hits.length ? hits[0].object.userData.index : -1;
+      } else {
+        hoveredIndex = -1;
+      }
+
+      // Rotation eases to near-stop while a node is hovered, so it's readable.
       if (!prefersReduced) {
-        const spin = 0.09 + hoverAmt * 0.06;
-        sphere.rotation.y += dt * spin;
-        sphere.rotation.x += dt * 0.025;
+        const spinTarget = hoveredIndex >= 0 ? 0.012 : 0.09;
+        spinCur += (spinTarget - spinCur) * 0.05;
+        globe.rotation.y += dt * spinCur;
+        globe.rotation.x += dt * 0.022;
         stars.rotation.y += dt * 0.012;
-        // Labels orbit a touch slower — kept gentle so the stack stays legible.
-        labelGroup.rotation.y += dt * (0.04 + hoverAmt * 0.03);
-        labelGroup.rotation.x = Math.sin(t * 0.15) * 0.1;
       }
 
-      // Globe reacts: expands + brightens as the field wakes.
-      const s = 1 + hoverAmt * 0.07;
-      sphere.scale.setScalar(s);
-      sphereMat.opacity = 0.92 + hoverAmt * 0.08;
-      sphereMat.size = 0.032 + hoverAmt * 0.006;
+      // Node visuals: idle twinkle + a lit pop for the hovered one.
+      for (let i = 0; i < nodes.length; i++) {
+        const nd = nodes[i];
+        nd.hover += ((hoveredIndex === i ? 1 : 0) - nd.hover) * 0.18;
+        const tw = prefersReduced ? 0 : Math.sin(t * 1.4 + nd.phase);
+        const sc = BASE_SCALE * (1 + tw * 0.08) * (1 + nd.hover * 0.7);
+        nd.sprite.scale.set(sc, sc, 1);
+        nd.mat.opacity = Math.min(1, 0.62 + tw * 0.12 + nd.hover * 0.5);
+      }
 
-      // Labels emerge from the sphere and fade in. Multiple cues shape it:
-      // a staggered cascade (per-label threshold), a depth fade+scale pop so
-      // front labels read brighter and larger, a radial fade that drops labels
-      // drifting toward the name/CTAs, and a gentle bob for life.
-      labelGroup.scale.setScalar(0.8 + hoverAmt * 0.2);
-      for (let i = 0; i < sprites.length; i++) {
-        const sp = sprites[i];
-        // Cascade: each label's own ramp begins once hoverAmt passes its slot.
-        const cascade = THREE.MathUtils.clamp((hoverAmt - sp.appearAt) / 0.3, 0, 1);
-        if (!prefersReduced) {
-          sp.sprite.position.y = sp.baseY + Math.sin(t * 0.9 + sp.phase) * 0.035;
-        }
-        sp.sprite.getWorldPosition(worldPos);
-        const front = THREE.MathUtils.clamp((worldPos.z + labelR) / (labelR * 2), 0, 1);
+      // Tooltip follows the hovered node's projected position.
+      if (hoveredIndex >= 0) {
+        nodes[hoveredIndex].sprite.getWorldPosition(worldPos);
         worldPos.project(camera);
-        const rad = Math.hypot(worldPos.x, worldPos.y);
-        const edge = 1 - THREE.MathUtils.smoothstep(rad, 0.32, 0.72);
-        sp.material.opacity = cascade * (0.1 + front * 0.55) * (0.3 + edge * 0.7);
-        // Depth pop + a small settle-in scale from the cascade.
-        const pop = (0.9 + front * 0.22) * (0.9 + cascade * 0.1);
-        sp.sprite.scale.set(sp.baseW * pop, sp.baseH * pop, 1);
+        const x = (worldPos.x * 0.5 + 0.5) * w;
+        const y = (-worldPos.y * 0.5 + 0.5) * h;
+        tip.style.left = `${x}px`;
+        tip.style.top = `${y}px`;
+        if (tipIndex !== hoveredIndex) {
+          tip.textContent = skills[hoveredIndex];
+          tipIndex = hoveredIndex;
+        }
+        tip.style.opacity = "1";
+        tip.style.transform = "translate(-50%,-150%) scale(1)";
+      } else if (tipIndex !== -1) {
+        tip.style.opacity = "0";
+        tip.style.transform = "translate(-50%,-150%) scale(0.9)";
+        tipIndex = -1;
       }
+      mount.style.cursor = hoveredIndex >= 0 ? "pointer" : "";
 
       curX += (targetX - curX) * 0.045;
       curY += (targetY - curY) * 0.045;
@@ -262,7 +278,6 @@ export default function OrbitCanvas() {
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
-      labelsEnabled = window.innerWidth >= LABEL_MIN_W;
     };
     const ro = new ResizeObserver(onResize);
     ro.observe(mount);
@@ -273,14 +288,13 @@ export default function OrbitCanvas() {
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("blur", onLeaveWin);
       document.removeEventListener("pointerleave", onLeaveWin);
+      if (tip.parentNode) tip.parentNode.removeChild(tip);
       sphereGeo.dispose();
       sphereMat.dispose();
       starGeo.dispose();
       starMat.dispose();
-      sprites.forEach(({ material, texture }) => {
-        material.dispose();
-        texture.dispose();
-      });
+      nodes.forEach((nd) => nd.mat.dispose());
+      glowTex.dispose();
       renderer.dispose();
       if (renderer.domElement.parentNode === mount) {
         mount.removeChild(renderer.domElement);
